@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Recon Desk – Daily Account Reconciliation</title>
+<style>
+:root{--bg:#f3eee2;--card:#fbf8f0;--ink:#1d2822;--mute:#6b7168;--line:#ddd5c2;--acc:#1e6b49;--acc2:#e8f1e9;--ai:#fff3c9;--warn:#a8480d;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121715;--card:#1a211e;--ink:#ece8dc;--mute:#9aa197;--line:#2f3a35;--acc:#5fc08f;--acc2:#1f2e27;--ai:#3a3317;--warn:#f0a064}}
+:root[data-theme="dark"]{--bg:#121715;--card:#1a211e;--ink:#ece8dc;--mute:#9aa197;--line:#2f3a35;--acc:#5fc08f;--acc2:#1f2e27;--ai:#3a3317;--warn:#f0a064;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 "IBM Plex Mono",ui-monospace,Menlo,monospace}
+h1{font:800 clamp(26px,5vw,40px)/1.05 Fraunces,Georgia,serif;margin:0;letter-spacing:-.02em}
+h1 span{color:var(--acc)}
+.wrap{max-width:900px;margin:0 auto;padding:20px 16px 110px}
+.sub{color:var(--mute);margin:6px 0 18px;max-width:60ch}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:700px){.grid{grid-template-columns:1fr}}
+label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--mute);margin-bottom:4px}
+input{font:inherit;color:inherit;background:transparent;border:1px solid var(--line);border-radius:8px;padding:7px 8px;width:100%}
+input:focus{outline:2px solid var(--acc);outline-offset:0}
+.drop{border:2px dashed var(--line);border-radius:12px;min-height:150px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;padding:12px;cursor:pointer;color:var(--mute)}
+.drop.over{border-color:var(--acc);background:var(--acc2)}
+.drop img{max-width:100%;max-height:220px;border-radius:8px}
+.btn{font:600 14px "IBM Plex Mono",monospace;border:0;border-radius:10px;padding:10px 14px;background:var(--acc);color:#fff;cursor:pointer}
+:root[data-theme="dark"] .btn{color:#0c1511}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .btn{color:#0c1511}}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn:disabled{opacity:.5;cursor:wait}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+#msg{margin-top:10px;font-size:13px;min-height:1.4em}
+#msg.err{color:var(--warn)}
+.tw{overflow-x:auto;margin-top:18px;border:1px solid var(--line);border-radius:14px;background:var(--card)}
+table{border-collapse:collapse;width:100%;min-width:680px}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--mute);text-align:right;padding:10px 8px;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left;padding-left:14px}
+td{padding:4px 5px;border-bottom:1px solid var(--line);text-align:right}
+td input{width:76px;text-align:right;padding:5px 6px}
+td.nm{font-weight:500}td.nm small{display:block;color:var(--mute);font-weight:400;font-size:11px}
+td.pr input{width:66px}
+td.tot{font-weight:600}
+td.sal{font-weight:600;color:var(--acc);padding-right:14px;white-space:nowrap}
+input.ai{background:var(--ai)}
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px))}
+.bar div{max-width:900px;margin:0 auto;display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.bar b{font:800 clamp(22px,5vw,30px) Fraunces,Georgia,serif;color:var(--acc)}
+.note{color:var(--mute);font-size:12px;margin-top:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Recon <span>Desk</span></h1>
+  <p class="sub">Daily account reconciliation for snacks and food. Drop in a screenshot of the filled sheet, check what was read, and the sales are worked out with the same formulas as Sheet2.</p>
+
+  <div class="grid">
+    <div class="card">
+      <div class="drop" id="drop" tabindex="0">
+        <div id="dropTxt">Drop a screenshot here, click to choose one,<br>or paste it with Ctrl/⌘ + V</div>
+        <img id="prev" alt="" hidden>
+      </div>
+      <input type="file" id="file" accept="image/*" hidden>
+      <div class="row">
+        <button class="btn" id="read" disabled>Read screenshot</button>
+        <button class="btn ghost" id="sample">Try 16 Nov sample</button>
+        <button class="btn ghost" id="clear">Clear</button>
+      </div>
+      <div id="msg"></div>
+      <details style="margin-top:10px"><summary>API key (needed to read screenshots)</summary>
+        <input id="key" type="password" placeholder="Anthropic API key (sk-ant-…)" autocomplete="off" style="margin-top:8px">
+        <p class="note">Saved only on this phone. Reading a screenshot needs an internet connection.</p></details>
+    </div>
+    <div class="card">
+      <label for="date">Date</label><input id="date" placeholder="e.g. 16th Nov. 2026">
+      <div style="height:10px"></div>
+      <label for="att">Attendant</label><input id="att" placeholder="Name">
+      <p class="note">Values read from a screenshot are highlighted. Please check them against the sheet, and correct any cell directly.</p>
+    </div>
+  </div>
+
+  <div class="tw"><table>
+    <thead><tr><th>Snacks / Food</th><th>Unit price</th><th>Open count</th><th>Additions</th><th>Total</th><th>Leftovers</th><th>Total sales</th></tr></thead>
+    <tbody id="body"></tbody>
+  </table></div>
+  <p class="note">Formulas, as on Sheet2: most items = (Total − Leftovers) × Price. Rice, beans and spaghetti are weighed in grams: Total = (Open − pot weight) + (Additions − pot weight), and Sales = (Total − Leftovers) ÷ portion size × Price (150 g, spaghetti 100 g). If Total is blank, Open + Additions is used. Grand sales = sum of all item sales.</p>
+</div>
+<div class="bar"><div><span>GRAND SALES</span><b id="grand">₦0</b></div></div>
+
+<script>
+const ITEMS=[["DONUTS",250],["EGGBUNS",500],["MEAT PIE",800],["CHICKEN PIE",1000],["SAUSAGE ROLL",250],["FRANK ROLL",500],["MILK DONUT",500],["BUNS",100],["FISH ROLLS",100],["SCOTCHED EGGS",500],["CUPCAKES",300],["PLANTAIN",50],["CHICKEN A",1500],["CHICKEN B",2000],["CHICKEN C",2500],["CHICKEN D",1000],["FISH",1000],["SALAD",500],["BREAD 1",400],["BREAD 2",1200],["JOLLOF RICE",400],["FRIED RICE",400],["OFADA RICE",500],["BEANS",200],["MEAT",200],["EGG",300],["PONMO",200],["ASSORTED",200],["SPAGHETTI",200],["EBA",400],["FUFU",400]];
+const W={"JOLLOF RICE":[2242,150],"FRIED RICE":[848,150],"OFADA RICE":[1226,150],"BEANS":[2126,150],"SPAGHETTI":[122,100]};
+const SAMPLE=[["DONUTS","","",29,10],["EGGBUNS","","",24,""],["MEAT PIE","","",24,6],["SAUSAGE ROLL","","",16,10],["FRANK ROLL","","",10,""],["MILK DONUT","","",6,""],["BUNS","","",110,""],["FISH ROLLS","","",90,""],["SCOTCHED EGGS","","",4,""],["CUPCAKES","","",2,1],["PLANTAIN","","",90,42],["CHICKEN A","","",3,""],["CHICKEN B","","",10,2],["FISH","","",7,3],["BREAD 1","","",6,5],["BREAD 2","","",1,""],["JOLLOF RICE",8884,"","",2270],["FRIED RICE",2874,"","",256],["OFADA RICE",2044,"","",806],["BEANS",5650,"","",444],["MEAT","","",45,17],["EGG","","",6,1],["PONMO","","",12,5],["ASSORTED","","",6,4],["SPAGHETTI",872,"","",""],["EBA","","",8,5]];
+const rows=ITEMS.map(([n,p])=>({n,p,c:"",d:"",e:"",f:"",ai:{}}));
+const $=id=>document.getElementById(id);
+const num=v=>(v===""||v==null||isNaN(+v))?null:+v;
+const money=x=>"₦"+x.toLocaleString("en-NG",{minimumFractionDigits:0,maximumFractionDigits:2});
+let blob=null;
+
+function calc(r){
+  const w=W[r.n],c=num(r.c),d=num(r.d),e=num(r.e),f=num(r.f)||0,p=num(r.p)||0;
+  const any=c!=null||d!=null||e!=null||num(r.f)!=null;
+  if(!any)return{any:false,t:null,s:0};
+  if(w){const t=(c!=null?c-w[0]:0)+(d!=null?d-w[0]:0);return{any,t,s:(t-f)/w[1]*p}}
+  const t=e!=null?e:(c||0)+(d||0);
+  return{any,t,s:(t-f)*p};
+}
+function build(){
+  $("body").innerHTML=rows.map((r,i)=>{
+    const w=W[r.n];
+    const inp=k=>`<td><input data-i="${i}" data-k="${k}" inputmode="decimal" autocomplete="off"></td>`;
+    return `<tr><td class="nm">${r.n}${w?`<small>weighed · pot ${w[0]} g · ${w[1]} g/portion</small>`:""}</td>
+    <td class="pr"><input data-i="${i}" data-k="p" inputmode="decimal"></td>${inp("c")}${inp("d")}
+    ${w?`<td class="tot" id="t${i}"></td>`:`<td><input data-i="${i}" data-k="e" inputmode="decimal"></td>`}
+    ${inp("f")}<td class="sal" id="s${i}"></td></tr>`}).join("");
+  paint(true);
+}
+function paint(fill){
+  let g=0;
+  rows.forEach((r,i)=>{
+    if(fill)document.querySelectorAll(`[data-i="${i}"]`).forEach(el=>{el.value=r[el.dataset.k]??"";el.classList.toggle("ai",!!r.ai[el.dataset.k])});
+    const x=calc(r);g+=x.s;
+    $("s"+i).textContent=x.any?money(x.s):"–";
+    const t=$("t"+i);if(t)t.textContent=x.any&&x.t!=null?x.t:"–";
+  });
+  $("grand").textContent=money(g);
+}
+$("body").addEventListener("input",ev=>{
+  const el=ev.target;if(!el.dataset.k)return;
+  const r=rows[el.dataset.i];r[el.dataset.k]=el.value.trim();r.ai[el.dataset.k]=false;el.classList.remove("ai");paint(false);
+});
+function msg(t,err){const m=$("msg");m.textContent=t;m.className=err?"err":""}
+function reset(){rows.forEach(r=>{r.c=r.d=r.e=r.f="";r.ai={}});}
+
+/* screenshot intake */
+function setImage(f){
+  if(!f||!f.type.startsWith("image/"))return;
+  blob=f;const p=$("prev");p.src=URL.createObjectURL(f);p.hidden=false;$("dropTxt").hidden=true;$("read").disabled=false;msg("Screenshot ready. Press “Read screenshot”.");
+}
+$("drop").onclick=()=>$("file").click();
+$("file").onchange=e=>setImage(e.target.files[0]);
+["dragover","dragenter"].forEach(t=>$("drop").addEventListener(t,e=>{e.preventDefault();$("drop").classList.add("over")}));
+["dragleave","drop"].forEach(t=>$("drop").addEventListener(t,e=>{e.preventDefault();$("drop").classList.remove("over")}));
+$("drop").addEventListener("drop",e=>setImage(e.dataTransfer.files[0]));
+document.addEventListener("paste",e=>{const it=[...(e.clipboardData?.items||[])].find(i=>i.type.startsWith("image/"));if(it)setImage(it.getAsFile())});
+
+async function toB64(f){const b=await createImageBitmap(f);const k=Math.min(1,1800/Math.max(b.width,b.height));const c=document.createElement("canvas");c.width=Math.round(b.width*k);c.height=Math.round(b.height*k);c.getContext("2d").drawImage(b,0,0,c.width,c.height);return c.toDataURL("image/jpeg",.9).split(",")[1]}
+try{$("key").value=localStorage.getItem("akey")||""}catch(e){}
+$("key").onchange=()=>{try{localStorage.setItem("akey",$("key").value.trim())}catch(e){}};
+const norm=s=>String(s||"").toUpperCase().replace(/\s+/g," ").trim();
+$("read").onclick=async()=>{
+  if(!blob)return;
+  const btn=$("read");btn.disabled=true;msg("Reading the sheet…");
+  try{
+    const key=$("key").value.trim();
+    if(!key){msg("Open “API key” below and paste your Anthropic API key first.",true);return}
+    const prompt=`This image is a screenshot of a filled “DAILY ACCOUNT RECONCILIATION RECORD SHEET” (snacks/food section). Columns: ITEM, UNIT PRICE, OPEN COUNT, ADDITIONS, TOTAL, LEFTOVERS, TOTAL SALES.
+Read ONLY what is visibly written. Do not calculate anything and do not guess blanks. A blank cell is null. Copy numbers exactly as shown (no thousands separators).
+Item names to look for: ${ITEMS.map(i=>i[0]).join(", ")}.
+For each item that appears, return its OPEN COUNT (c), ADDITIONS (d), TOTAL (e) and LEFTOVERS (f). Also read the DATE and ATTENDANT if shown.
+Return ONLY JSON: {"date":string|null,"attendant":string|null,"rows":[{"name":string,"c":number|null,"d":number|null,"e":number|null,"f":number|null}]}`;
+    const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"content-type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify({model:"claude-sonnet-5-5",max_tokens:3000,messages:[{role:"user",content:[{type:"image",source:{type:"base64",media_type:"image/jpeg",data:await toB64(blob)}},{type:"text",text:prompt}]}]})});
+    const j=await res.json();if(!res.ok)throw new Error(j.error&&j.error.message||res.status);
+    const out=JSON.parse(j.content.map(x=>x.text||"").join("").replace(/```json|```/g,"").trim());
+    reset();let n=0;
+    (out.rows||[]).forEach(o=>{
+      const r=rows.find(x=>norm(x.n)===norm(o.name));if(!r)return;
+      let hit=false;
+      for(const k of["c","d","e","f"]){const v=num(o[k]);if(v!=null){r[k]=String(v);r.ai[k]=true;hit=true}}
+      if(hit)n++;
+    });
+    if(out.date)$("date").value=out.date;if(out.attendant)$("att").value=out.attendant;
+    paint(true);
+    msg(n?`Read ${n} items. Highlighted cells came from the screenshot, so please check them.`:"I couldn’t find any figures in that image. Try a clearer or larger screenshot.",!n);
+  }catch(e){
+    msg(e&&e.code==="not_granted"?"Permission to read the screenshot was declined.":"Couldn’t read that screenshot ("+(e&&e.message||"error")+"). Try again, or type the figures in.",true);
+  }finally{btn.disabled=false}
+};
+$("sample").onclick=()=>{reset();SAMPLE.forEach(([n,c,d,e,f])=>{const r=rows.find(x=>x.n===n);r.c=String(c);r.d=String(d);r.e=String(e);r.f=String(f)});$("date").value="16th NOV. 2026";paint(true);msg("Loaded the figures from the 16 Nov. 2026 sheet.")};
+$("clear").onclick=()=>{reset();blob=null;$("prev").hidden=true;$("dropTxt").hidden=false;$("read").disabled=true;$("date").value=$("att").value="";paint(true);msg("")};
+build();
+</script>
+</body>
+</html>
