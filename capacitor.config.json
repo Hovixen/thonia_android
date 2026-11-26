@@ -1,1 +1,5 @@
-{"appId":"com.recondesk.app","appName":"Recon Desk","webDir":"www"}
+{
+  "appId": "ng.recon.dailyaccount",
+  "appName": "Daily Recon",
+  "webDir": "www"
+}

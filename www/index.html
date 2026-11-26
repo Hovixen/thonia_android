@@ -1,184 +1,116 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
+<html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Recon Desk – Daily Account Reconciliation</title>
+<title>Daily Account Reconciliation</title>
 <style>
-:root{--bg:#f3eee2;--card:#fbf8f0;--ink:#1d2822;--mute:#6b7168;--line:#ddd5c2;--acc:#1e6b49;--acc2:#e8f1e9;--ai:#fff3c9;--warn:#a8480d;
-box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121715;--card:#1a211e;--ink:#ece8dc;--mute:#9aa197;--line:#2f3a35;--acc:#5fc08f;--acc2:#1f2e27;--ai:#3a3317;--warn:#f0a064}}
-:root[data-theme="dark"]{--bg:#121715;--card:#1a211e;--ink:#ece8dc;--mute:#9aa197;--line:#2f3a35;--acc:#5fc08f;--acc2:#1f2e27;--ai:#3a3317;--warn:#f0a064;color-scheme:dark}
-*{box-sizing:border-box}
-html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 "IBM Plex Mono",ui-monospace,Menlo,monospace}
-h1{font:800 clamp(26px,5vw,40px)/1.05 Fraunces,Georgia,serif;margin:0;letter-spacing:-.02em}
-h1 span{color:var(--acc)}
-.wrap{max-width:900px;margin:0 auto;padding:20px 16px 110px}
-.sub{color:var(--mute);margin:6px 0 18px;max-width:60ch}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-@media(max-width:700px){.grid{grid-template-columns:1fr}}
-label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--mute);margin-bottom:4px}
-input{font:inherit;color:inherit;background:transparent;border:1px solid var(--line);border-radius:8px;padding:7px 8px;width:100%}
-input:focus{outline:2px solid var(--acc);outline-offset:0}
-.drop{border:2px dashed var(--line);border-radius:12px;min-height:150px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;padding:12px;cursor:pointer;color:var(--mute)}
-.drop.over{border-color:var(--acc);background:var(--acc2)}
-.drop img{max-width:100%;max-height:220px;border-radius:8px}
-.btn{font:600 14px "IBM Plex Mono",monospace;border:0;border-radius:10px;padding:10px 14px;background:var(--acc);color:#fff;cursor:pointer}
-:root[data-theme="dark"] .btn{color:#0c1511}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .btn{color:#0c1511}}
-.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
-.btn:disabled{opacity:.5;cursor:wait}
-.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-#msg{margin-top:10px;font-size:13px;min-height:1.4em}
-#msg.err{color:var(--warn)}
-.tw{overflow-x:auto;margin-top:18px;border:1px solid var(--line);border-radius:14px;background:var(--card)}
-table{border-collapse:collapse;width:100%;min-width:680px}
-th{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--mute);text-align:right;padding:10px 8px;border-bottom:1px solid var(--line)}
-th:first-child,td:first-child{text-align:left;padding-left:14px}
-td{padding:4px 5px;border-bottom:1px solid var(--line);text-align:right}
-td input{width:76px;text-align:right;padding:5px 6px}
-td.nm{font-weight:500}td.nm small{display:block;color:var(--mute);font-weight:400;font-size:11px}
-td.pr input{width:66px}
-td.tot{font-weight:600}
-td.sal{font-weight:600;color:var(--acc);padding-right:14px;white-space:nowrap}
-input.ai{background:var(--ai)}
-.bar{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px))}
-.bar div{max-width:900px;margin:0 auto;display:flex;justify-content:space-between;align-items:baseline;gap:10px}
-.bar b{font:800 clamp(22px,5vw,30px) Fraunces,Georgia,serif;color:var(--acc)}
-.note{color:var(--mute);font-size:12px;margin-top:14px}
-</style>
-</head>
-<body>
-<div class="wrap">
-  <h1>Recon <span>Desk</span></h1>
-  <p class="sub">Daily account reconciliation for snacks and food. Drop in a screenshot of the filled sheet, check what was read, and the sales are worked out with the same formulas as Sheet2.</p>
-
-  <div class="grid">
-    <div class="card">
-      <div class="drop" id="drop" tabindex="0">
-        <div id="dropTxt">Drop a screenshot here, click to choose one,<br>or paste it with Ctrl/⌘ + V</div>
-        <img id="prev" alt="" hidden>
-      </div>
-      <input type="file" id="file" accept="image/*" hidden>
-      <div class="row">
-        <button class="btn" id="read" disabled>Read screenshot</button>
-        <button class="btn ghost" id="sample">Try 16 Nov sample</button>
-        <button class="btn ghost" id="clear">Clear</button>
-      </div>
-      <div id="msg"></div>
-      <details style="margin-top:10px"><summary>API key (needed to read screenshots)</summary>
-        <input id="key" type="password" placeholder="Anthropic API key (sk-ant-…)" autocomplete="off" style="margin-top:8px">
-        <p class="note">Saved only on this phone. Reading a screenshot needs an internet connection.</p></details>
-    </div>
-    <div class="card">
-      <label for="date">Date</label><input id="date" placeholder="e.g. 16th Nov. 2026">
-      <div style="height:10px"></div>
-      <label for="att">Attendant</label><input id="att" placeholder="Name">
-      <p class="note">Values read from a screenshot are highlighted. Please check them against the sheet, and correct any cell directly.</p>
-    </div>
-  </div>
-
-  <div class="tw"><table>
-    <thead><tr><th>Snacks / Food</th><th>Unit price</th><th>Open count</th><th>Additions</th><th>Total</th><th>Leftovers</th><th>Total sales</th></tr></thead>
-    <tbody id="body"></tbody>
-  </table></div>
-  <p class="note">Formulas, as on Sheet2: most items = (Total − Leftovers) × Price. Rice, beans and spaghetti are weighed in grams: Total = (Open − pot weight) + (Additions − pot weight), and Sales = (Total − Leftovers) ÷ portion size × Price (150 g, spaghetti 100 g). If Total is blank, Open + Additions is used. Grand sales = sum of all item sales.</p>
-</div>
-<div class="bar"><div><span>GRAND SALES</span><b id="grand">₦0</b></div></div>
-
+:root{--g:#0f5a3a;--g2:#1f8a5b;--on:#fff;--gl:#e3f3ea;--bg:#f1f4f2;--card:#fff;--in:#ebeeec;--tx:#14201a;--mu:#62706a;--bd:#dce3de;--rd:#b83227;--am:#a56a0c;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--g:#0b3d28;--g2:#43c58a;--on:#06261a;--gl:#173a2a;--bg:#0e1411;--card:#17201b;--in:#222d27;--tx:#eaf2ed;--mu:#9aaba2;--bd:#2a3731;--rd:#ff8a7d;--am:#e7b45a;color-scheme:dark}}
+:root[data-theme="dark"]{--g:#0b3d28;--g2:#43c58a;--on:#06261a;--gl:#173a2a;--bg:#0e1411;--card:#17201b;--in:#222d27;--tx:#eaf2ed;--mu:#9aaba2;--bd:#2a3731;--rd:#ff8a7d;--am:#e7b45a;color-scheme:dark}
+*{box-sizing:border-box}html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--tx);font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+#app{max-width:430px;height:100%;margin:0 auto;display:flex;flex-direction:column;background:var(--bg);position:relative}
+#main{flex:1;overflow-y:auto;padding-bottom:8px}
+.hero{background:var(--g);color:#fff;padding:16px 16px 56px;border-radius:0 0 26px 26px}
+.row{display:flex;align-items:center;gap:10px}.sb{justify-content:space-between}
+.logo{width:40px;height:40px;border-radius:12px;background:#fff;color:#0f5a3a;display:grid;place-items:center;font-weight:800;font-size:20px}
+small,.mu{color:var(--mu);font-size:12.5px}.hero small{color:#bfe3cf}
+.pad{padding:0 16px}
+.gs{margin:-40px 16px 14px;background:var(--g);color:#fff;border-radius:20px;padding:18px;border:1px solid #ffffff22;box-shadow:0 8px 22px #0f5a3a40}
+.gs small{color:#bfe3cf}.gs h1{margin:4px 0 6px;font-size:34px;letter-spacing:-.5px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:14px;margin:0 16px 12px}
+.stat{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 16px 12px}.stat .card{margin:0}.stat b{font-size:22px;display:block}
+button{font:inherit;border:0;border-radius:14px;padding:14px;background:var(--g2);color:var(--on);font-weight:700;width:100%;cursor:pointer}
+button.o{background:var(--card);color:var(--tx);border:1px solid var(--bd)}button.s{width:auto;padding:10px 14px}
+.btns{display:grid;gap:10px;margin:0 16px}
+h2{font-size:19px;margin:16px 16px 10px}
+input,select{font:inherit;width:100%;background:var(--in);color:var(--tx);border:1.5px solid transparent;border-radius:12px;padding:11px 12px;min-height:44px}
+input:focus,select:focus{outline:0;border-color:var(--g2)}input[readonly]{opacity:.75}
+label{display:block;font-size:12px;color:var(--mu);font-weight:600}label input{margin-top:4px;font-size:16px;color:var(--tx)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.c{background:var(--card);border:1px solid var(--bd);border-radius:16px;margin:0 16px 10px;overflow:hidden}
+.c.w{border-color:var(--rd)}.c.m .ch{border-left:4px solid var(--am)}
+.ch{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:13px 14px;cursor:pointer}
+.ch b{display:block}.r{text-align:right}.r b{color:var(--g2);font-size:16px}.chev{font-size:10px;color:var(--mu)}
+.bd{padding:0 14px 14px}.bd .g2{margin-bottom:10px}
+.tag[hidden],.warn[hidden]{display:none}.tag{display:inline-block;font-size:11px;font-weight:700;border-radius:99px;padding:2px 8px;background:var(--gl);color:var(--g2);margin-left:6px}
+.tag.m{color:var(--am);background:#f3e3c2}.tag.w{color:#fff;background:var(--rd)}
+.warn{color:var(--rd);font-size:12.5px;font-weight:600;margin:0 0 8px}.note{background:var(--in);border-radius:10px;padding:8px 10px;font-size:12px;color:var(--mu)}
+.gb{position:sticky;bottom:0;margin:10px 0 0;padding:10px 16px;background:var(--card);border-top:1px solid var(--bd);display:flex;align-items:center;gap:12px}
+.gb div{flex:1}.gb b{font-size:20px;color:var(--g2)}
+nav{display:grid;grid-template-columns:repeat(4,1fr);background:var(--card);border-top:1px solid var(--bd)}
+nav a{padding:9px 2px 10px;text-align:center;font-size:11px;color:var(--mu);cursor:pointer;font-weight:600}nav a i{display:block;font-style:normal;font-size:20px;line-height:1.2}
+nav a.on{color:var(--g2)}
+.bar{height:8px;background:var(--in);border-radius:9px;margin-top:6px;overflow:hidden}.bar span{display:block;height:100%;background:var(--g2)}
+.sum{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--bd)}.sum:last-child{border:0}
+.hi{display:flex;gap:10px;align-items:center;padding:12px 14px}.hi.sel{outline:2px solid var(--g2)}
+.chip{display:inline-block;border:1px solid var(--bd);background:var(--card);border-radius:99px;padding:6px 12px;font-size:12.5px;font-weight:600;cursor:pointer}.chip.on{background:var(--g2);color:var(--on)}
+#tt{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--g);color:#fff;padding:11px 16px;border-radius:12px;font-weight:600;display:none;max-width:90%;z-index:5}
+#md{position:fixed;inset:0;background:#0009;display:none;place-items:center;z-index:6;padding:20px}
+#md div{background:var(--card);border-radius:18px;padding:18px;max-width:340px;width:100%}
+@media print{nav,.btns,.gb{display:none}}
+</style></head><body>
+<div id="app"><div id="main"></div>
+<nav id="nav"></nav></div><div id="tt"></div><div id="md"><div><p id="mq"></p><div class="g2"><button class="o" onclick="md(0)">Cancel</button><button id="my" style="background:var(--rd);color:#fff">Confirm</button></div></div></div>
 <script>
-const ITEMS=[["DONUTS",250],["EGGBUNS",500],["MEAT PIE",800],["CHICKEN PIE",1000],["SAUSAGE ROLL",250],["FRANK ROLL",500],["MILK DONUT",500],["BUNS",100],["FISH ROLLS",100],["SCOTCHED EGGS",500],["CUPCAKES",300],["PLANTAIN",50],["CHICKEN A",1500],["CHICKEN B",2000],["CHICKEN C",2500],["CHICKEN D",1000],["FISH",1000],["SALAD",500],["BREAD 1",400],["BREAD 2",1200],["JOLLOF RICE",400],["FRIED RICE",400],["OFADA RICE",500],["BEANS",200],["MEAT",200],["EGG",300],["PONMO",200],["ASSORTED",200],["SPAGHETTI",200],["EBA",400],["FUFU",400]];
-const W={"JOLLOF RICE":[2242,150],"FRIED RICE":[848,150],"OFADA RICE":[1226,150],"BEANS":[2126,150],"SPAGHETTI":[122,100]};
-const SAMPLE=[["DONUTS","","",29,10],["EGGBUNS","","",24,""],["MEAT PIE","","",24,6],["SAUSAGE ROLL","","",16,10],["FRANK ROLL","","",10,""],["MILK DONUT","","",6,""],["BUNS","","",110,""],["FISH ROLLS","","",90,""],["SCOTCHED EGGS","","",4,""],["CUPCAKES","","",2,1],["PLANTAIN","","",90,42],["CHICKEN A","","",3,""],["CHICKEN B","","",10,2],["FISH","","",7,3],["BREAD 1","","",6,5],["BREAD 2","","",1,""],["JOLLOF RICE",8884,"","",2270],["FRIED RICE",2874,"","",256],["OFADA RICE",2044,"","",806],["BEANS",5650,"","",444],["MEAT","","",45,17],["EGG","","",6,1],["PONMO","","",12,5],["ASSORTED","","",6,4],["SPAGHETTI",872,"","",""],["EBA","","",8,5]];
-const rows=ITEMS.map(([n,p])=>({n,p,c:"",d:"",e:"",f:"",ai:{}}));
-const $=id=>document.getElementById(id);
-const num=v=>(v===""||v==null||isNaN(+v))?null:+v;
-const money=x=>"₦"+x.toLocaleString("en-NG",{minimumFractionDigits:0,maximumFractionDigits:2});
-let blob=null;
-
-function calc(r){
-  const w=W[r.n],c=num(r.c),d=num(r.d),e=num(r.e),f=num(r.f)||0,p=num(r.p)||0;
-  const any=c!=null||d!=null||e!=null||num(r.f)!=null;
-  if(!any)return{any:false,t:null,s:0};
-  if(w){const t=(c!=null?c-w[0]:0)+(d!=null?d-w[0]:0);return{any,t,s:(t-f)/w[1]*p}}
-  const t=e!=null?e:(c||0)+(d||0);
-  return{any,t,s:(t-f)*p};
-}
-function build(){
-  $("body").innerHTML=rows.map((r,i)=>{
-    const w=W[r.n];
-    const inp=k=>`<td><input data-i="${i}" data-k="${k}" inputmode="decimal" autocomplete="off"></td>`;
-    return `<tr><td class="nm">${r.n}${w?`<small>weighed · pot ${w[0]} g · ${w[1]} g/portion</small>`:""}</td>
-    <td class="pr"><input data-i="${i}" data-k="p" inputmode="decimal"></td>${inp("c")}${inp("d")}
-    ${w?`<td class="tot" id="t${i}"></td>`:`<td><input data-i="${i}" data-k="e" inputmode="decimal"></td>`}
-    ${inp("f")}<td class="sal" id="s${i}"></td></tr>`}).join("");
-  paint(true);
-}
-function paint(fill){
-  let g=0;
-  rows.forEach((r,i)=>{
-    if(fill)document.querySelectorAll(`[data-i="${i}"]`).forEach(el=>{el.value=r[el.dataset.k]??"";el.classList.toggle("ai",!!r.ai[el.dataset.k])});
-    const x=calc(r);g+=x.s;
-    $("s"+i).textContent=x.any?money(x.s):"–";
-    const t=$("t"+i);if(t)t.textContent=x.any&&x.t!=null?x.t:"–";
-  });
-  $("grand").textContent=money(g);
-}
-$("body").addEventListener("input",ev=>{
-  const el=ev.target;if(!el.dataset.k)return;
-  const r=rows[el.dataset.i];r[el.dataset.k]=el.value.trim();r.ai[el.dataset.k]=false;el.classList.remove("ai");paint(false);
-});
-function msg(t,err){const m=$("msg");m.textContent=t;m.className=err?"err":""}
-function reset(){rows.forEach(r=>{r.c=r.d=r.e=r.f="";r.ai={}});}
-
-/* screenshot intake */
-function setImage(f){
-  if(!f||!f.type.startsWith("image/"))return;
-  blob=f;const p=$("prev");p.src=URL.createObjectURL(f);p.hidden=false;$("dropTxt").hidden=true;$("read").disabled=false;msg("Screenshot ready. Press “Read screenshot”.");
-}
-$("drop").onclick=()=>$("file").click();
-$("file").onchange=e=>setImage(e.target.files[0]);
-["dragover","dragenter"].forEach(t=>$("drop").addEventListener(t,e=>{e.preventDefault();$("drop").classList.add("over")}));
-["dragleave","drop"].forEach(t=>$("drop").addEventListener(t,e=>{e.preventDefault();$("drop").classList.remove("over")}));
-$("drop").addEventListener("drop",e=>setImage(e.dataTransfer.files[0]));
-document.addEventListener("paste",e=>{const it=[...(e.clipboardData?.items||[])].find(i=>i.type.startsWith("image/"));if(it)setImage(it.getAsFile())});
-
-async function toB64(f){const b=await createImageBitmap(f);const k=Math.min(1,1800/Math.max(b.width,b.height));const c=document.createElement("canvas");c.width=Math.round(b.width*k);c.height=Math.round(b.height*k);c.getContext("2d").drawImage(b,0,0,c.width,c.height);return c.toDataURL("image/jpeg",.9).split(",")[1]}
-try{$("key").value=localStorage.getItem("akey")||""}catch(e){}
-$("key").onchange=()=>{try{localStorage.setItem("akey",$("key").value.trim())}catch(e){}};
-const norm=s=>String(s||"").toUpperCase().replace(/\s+/g," ").trim();
-$("read").onclick=async()=>{
-  if(!blob)return;
-  const btn=$("read");btn.disabled=true;msg("Reading the sheet…");
-  try{
-    const key=$("key").value.trim();
-    if(!key){msg("Open “API key” below and paste your Anthropic API key first.",true);return}
-    const prompt=`This image is a screenshot of a filled “DAILY ACCOUNT RECONCILIATION RECORD SHEET” (snacks/food section). Columns: ITEM, UNIT PRICE, OPEN COUNT, ADDITIONS, TOTAL, LEFTOVERS, TOTAL SALES.
-Read ONLY what is visibly written. Do not calculate anything and do not guess blanks. A blank cell is null. Copy numbers exactly as shown (no thousands separators).
-Item names to look for: ${ITEMS.map(i=>i[0]).join(", ")}.
-For each item that appears, return its OPEN COUNT (c), ADDITIONS (d), TOTAL (e) and LEFTOVERS (f). Also read the DATE and ATTENDANT if shown.
-Return ONLY JSON: {"date":string|null,"attendant":string|null,"rows":[{"name":string,"c":number|null,"d":number|null,"e":number|null,"f":number|null}]}`;
-    const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"content-type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify({model:"claude-sonnet-5-5",max_tokens:3000,messages:[{role:"user",content:[{type:"image",source:{type:"base64",media_type:"image/jpeg",data:await toB64(blob)}},{type:"text",text:prompt}]}]})});
-    const j=await res.json();if(!res.ok)throw new Error(j.error&&j.error.message||res.status);
-    const out=JSON.parse(j.content.map(x=>x.text||"").join("").replace(/```json|```/g,"").trim());
-    reset();let n=0;
-    (out.rows||[]).forEach(o=>{
-      const r=rows.find(x=>norm(x.n)===norm(o.name));if(!r)return;
-      let hit=false;
-      for(const k of["c","d","e","f"]){const v=num(o[k]);if(v!=null){r[k]=String(v);r.ai[k]=true;hit=true}}
-      if(hit)n++;
-    });
-    if(out.date)$("date").value=out.date;if(out.attendant)$("att").value=out.attendant;
-    paint(true);
-    msg(n?`Read ${n} items. Highlighted cells came from the screenshot, so please check them.`:"I couldn’t find any figures in that image. Try a clearer or larger screenshot.",!n);
-  }catch(e){
-    msg(e&&e.code==="not_granted"?"Permission to read the screenshot was declined.":"Couldn’t read that screenshot ("+(e&&e.message||"error")+"). Try again, or type the figures in.",true);
-  }finally{btn.disabled=false}
-};
-$("sample").onclick=()=>{reset();SAMPLE.forEach(([n,c,d,e,f])=>{const r=rows.find(x=>x.n===n);r.c=String(c);r.d=String(d);r.e=String(e);r.f=String(f)});$("date").value="16th NOV. 2026";paint(true);msg("Loaded the figures from the 16 Nov. 2026 sheet.")};
-$("clear").onclick=()=>{reset();blob=null;$("prev").hidden=true;$("dropTxt").hidden=false;$("read").disabled=true;$("date").value=$("att").value="";paint(true);msg("")};
-build();
-</script>
-</body>
-</html>
+/*CALC*/
+const S=[['DONUTS',250,'','',29,10],['EGGBUNS',500,'','',24,''],['MEAT PIE',800,'','',24,6],['CHICKEN PIE',1000,'','','',''],['SAUSAGE ROLL',250,'','',16,10],['FRANK ROLL',500,'','',10,''],['MILK DONUT',500,'','',6,''],['BUNS',100,'','',110,''],['FISH ROLLS',100,'','',90,''],['SCOTCHED EGGS',500,'','',4,''],['CUPCAKES',300,'','',2,1],['PLANTAIN',50,'','',90,42],['CHICKEN A',1500,'','',3,''],['CHICKEN B',2000,'','',10,2],['CHICKEN C',2500,'','','',''],['CHICKEN D',1000,'','','',''],['FISH',1000,'','',7,3],['SALAD',500,'','','',''],['BREAD 1',400,'','',6,5],['BREAD 2',1200,'','',1,''],['JOLLOF RICE',400,8884,'','',2270,2242,150],['FRIED RICE',400,2874,'','',256,848,150],['OFADA RICE',500,2044,'','',806,1226,150],['BEANS',200,5650,'','',444,2126,150],['MEAT',200,'','',45,17],['EGG',300,'','',6,1],['PONMO',200,'','',12,5],['ASSORTED',200,'','',6,4],['SPAGHETTI',200,872,'','','',122,100],['EBA',400,'','',8,5],['FUFU',400,'','','','']];
+const I=S.map(a=>({n:a[0],p:a[1],o:a[2],a:a[3],t:a[4],l:a[5],k:a[6]||0,d:a[7]||0}));
+const num=v=>v===''?0:+v;
+const tot=i=>i.k?(i.o===''?0:i.o-i.k)+(i.a===''?0:i.a-i.k):num(i.t);
+const sal=i=>i.k?(tot(i)-num(i.l))/i.d*i.p:(tot(i)-num(i.l))*i.p;
+const grand=()=>I.reduce((s,i)=>s+sal(i),0);
+/*END*/
+const $=s=>document.querySelector(s),N=n=>'₦'+(+n).toLocaleString('en-NG',{maximumFractionDigits:2});
+const r=(a,b)=>Array.from({length:b-a+1},(_,k)=>a+k);
+const C=[['Snacks & pastries',r(0,11)],['Chicken & fish',r(12,16)],['Salad & bread',r(17,19)],['Rice, beans & swallow',[...r(20,23),28,29,30]],['Meat, egg & sides',r(24,27)],['Added items',[]]];
+const rec=i=>tot(i)>0||i.l!=='',miss=i=>i.k?(i.o===''&&i.a===''):i.t==='',bad=i=>num(i.l)>tot(i);
+let ST={days:{}};const LS='recon_v1';
+try{ST=JSON.parse(localStorage.getItem(LS))||ST}catch(e){}
+ST.days=ST.days||{};
+const ent=()=>I.map(i=>[i.o,i.a,i.t,i.l]);
+function P(){try{localStorage.setItem(LS,JSON.stringify({days:ST.days,items:I.map(i=>({n:i.n,p:i.p,k:i.k,d:i.d})),cur:{date,att,e:ent()}}))}catch(e){}}
+function ld(d){const r=ST.days[d];I.forEach((i,x)=>{const e=(r&&r.e[x])||['','','',''];i.o=e[0];i.a=e[1];i.t=e[2];i.l=e[3]});att=r?r.a:''}
+const open=new Set();let tab='home',date='2026-11-16',att='',adm=false,q='',fa='All',cmp=[];
+const fd=d=>new Date(d+'T00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+const T=[['home','⌂','Dashboard'],['rec','✎','Reconciliation'],['rep','▤','Reports'],['his','↺','History']];
+function toast(m){const t=$('#tt');t.textContent=m;t.style.display='block';clearTimeout(toast.h);toast.h=setTimeout(()=>t.style.display='none',2600)}
+function md(m,fn){$('#md').style.display=m?'grid':'none';if(m){$('#mq').textContent=m;$('#my').onclick=()=>{md(0);fn()}}}
+function go(t){tab=t;render();$('#main').scrollTop=0}
+function render(){$('#nav').innerHTML=T.map(t=>`<a class="${tab==t[0]?'on':''}" onclick="go('${t[0]}')"><i>${t[1]}</i>${t[2]}</a>`).join('');$('#main').innerHTML={home,rec:recon,rep:report,his:hist}[tab]()}
+function home(){const n=I.filter(rec).length;return `<div class="hero"><div class="row"><div class="logo">₦</div><div><b>Daily Account Reconciliation</b><br><small>Snacks & food sales</small></div></div><div style="margin-top:16px"><small>Today’s date</small><br><b>${fd(date)}</b></div><div style="margin-top:8px"><small>Attendant</small><br><b>${att||'Not set yet'}</b></div></div>
+<div class="gs"><small>TODAY’S GRAND SALES</small><h1 id="hg">${N(grand())}</h1><small>Sum of total sales for all food items</small></div>
+<div class="stat"><div class="card"><small>Items recorded</small><b>${n}</b></div><div class="card"><small>Items listed</small><b>${I.length}</b></div></div>
+<div class="btns"><button onclick="md('Start a new reconciliation? All entered counts will be cleared.',nw)">＋ Start new reconciliation</button><button class="o" onclick="go('his')">View previous records</button><button class="o" onclick="go('rep')">View daily sales report</button></div>`}
+function nw(){I.forEach(i=>{i.o=i.a=i.t=i.l=''});att='';P();go('rec');toast('New reconciliation started')}
+function fld(i,x,k,l,ro,v){return `<label>${l}<input type="number" inputmode="decimal" min="0" step="any" ${ro?'readonly':''} data-x="${x}" data-k="${k}" ${ro?`id="t${x}"`:''} value="${v!==undefined?v:i[k]}"></label>`}
+function card(i,x){const sp=i.k,o=open.has(x);return `<div class="c ${bad(i)?'w':''} ${miss(i)?'m':''}" id="c${x}"><div class="ch" onclick="tg(${x})"><div><b>${i.n}</b><small>${N(i.p)}${sp?' per '+i.d+' units':' each'}<span class="tag m" id="m${x}" ${miss(i)?'':'hidden'}>No entry</span><span class="tag w" id="k${x}" ${bad(i)?'':'hidden'}>Check</span></small></div><div class="r"><b id="s${x}">${N(sal(i))}</b><br><span class="chev">${o?'▲ Hide':'▼ Edit'}</span></div></div>${o?`<div class="bd"><p class="warn" id="w${x}" ${bad(i)?'':'hidden'}>⚠ Leftovers exceed total quantity</p><div class="g2">${fld(i,x,'p','Unit price (₦)')}${fld(i,x,'o','Open count')}</div><div class="g2">${fld(i,x,'a','Additions')}${sp?fld(i,x,'t','Total (calculated)',1,tot(i)):fld(i,x,'t','Total')}</div>${fld(i,x,'l','Leftovers')}<p class="note">${sp?`Total = (Open − ${i.k}) + (Additions − ${i.k}); blank cells count as 0.<br>Sales = (Total − Leftovers) ÷ ${i.d} × Price`:'Sales = (Total − Leftovers) × Unit price'}</p></div>`:''}</div>`}
+function tg(x){open.has(x)?open.delete(x):open.add(x);$('#c'+x).outerHTML=card(I[x],x)}
+function recon(){return `<h2>Daily Account Reconciliation</h2><div class="card"><div class="g2"><label>Date<input type="date" id="dt" value="${date}"></label><label>Attendant<input id="at" placeholder="Enter name" value="${att}"></label></div><div class="row sb" style="margin-top:10px"><span class="chip ${adm?'on':''}" onclick="adm=!adm;render()">Admin mode: ${adm?'on':'off'}</span><small id="wc"></small></div>${adm?`<div class="g2" style="margin-top:10px"><label>New item<input id="ni" placeholder="Item name"></label><label>Unit price (₦)<input id="np" type="number" min="0" inputmode="decimal"></label></div><button class="s" style="margin-top:10px" onclick="addI()">＋ Add food item</button>`:''}</div>${I.map(card).join('')}<div class="gb"><div><small>Grand sales</small><br><b id="gt">${N(grand())}</b></div><button class="s" onclick="save()">Save</button></div>`}
+function addI(){const n=$('#ni').value.trim().toUpperCase(),p=+$('#np').value;if(!n||!(p>=0)||$('#np').value==='')return toast('Enter a name and unit price');I.push({n,p,o:'',a:'',t:'',l:'',k:0,d:0});C[5][1].push(I.length-1);P();render()}
+function save(){if(!date)return toast('Pick a date first');ST.days[date]={a:att,e:ent(),g:grand(),n:I.filter(rec).length};P();const w=I.filter(bad).length;toast(w?`Saved with ${w} warning${w>1?'s':''} · ${N(grand())}`:`✓ Reconciliation saved · ${N(grand())}`)}
+function upd(x){const i=I[x];$('#s'+x).textContent=N(sal(i));const t=$('#t'+x);if(t)t.value=tot(i);const c=$('#c'+x);c.classList.toggle('w',bad(i));c.classList.toggle('m',miss(i));$('#m'+x).hidden=!miss(i);$('#k'+x).hidden=!bad(i);const w=$('#w'+x);if(w)w.hidden=!bad(i);gt();P()}
+function gt(){const g=$('#gt');if(g)g.textContent=N(grand());const w=$('#wc');if(w){const n=I.filter(bad).length,m=I.filter(miss).length;w.textContent=`${n?'⚠ '+n+' warning'+(n>1?'s · ':' · '):''}${m} without entry`}}
+function report(){const g=grand(),n=I.filter(rec).length;return `<h2>Daily Sales Report</h2><div class="card"><div class="sum"><span class="mu">Date</span><b>${fd(date)}</b></div><div class="sum"><span class="mu">Attendant</span><b>${att||'Not set'}</b></div><div class="sum"><span class="mu">Items recorded</span><b>${n} of ${I.length}</b></div></div>
+<div class="card"><b>Sales by category</b>${C.filter(c=>c[1].length).map(c=>{const s=c[1].reduce((a,x)=>a+sal(I[x]),0);return `<div style="margin-top:12px"><div class="row sb"><span>${c[0]}</span><b>${N(s)}</b></div><div class="bar"><span style="width:${g>0?Math.max(0,s/g*100):0}%"></span></div></div>`}).join('')}</div>
+<div class="gs" style="margin-top:0"><small>GRAND SALES FOR THE DAY</small><h1>${N(g)}</h1></div>
+<div class="btns"><button onclick="expPdf()">Share as PDF</button><button class="o" onclick="expCsv()">Share as CSV (opens in Excel)</button></div>`}
+function rows(){const D=Object.keys(ST.days).sort().reverse().map(d=>({d,a:ST.days[d].a||'—',g:ST.days[d].g}));if(!ST.days[date])D.unshift({d:date,a:att||'—',g:grand(),live:1});return D.filter(h=>(fa=='All'||h.a==fa)&&(!q||(h.d+' '+fd(h.d)).toLowerCase().includes(q.toLowerCase())))}
+function hl(){const R=rows();let h=R.map(h=>`<div class="c hi ${cmp.includes(h.d)?'sel':''}" style="margin:0 16px 10px"><div style="flex:1" onclick="pk('${h.d}')"><b>${fd(h.d)}</b>${h.live?'<span class="tag">Today</span>':''}<br><small>${h.a}</small></div><b style="color:var(--g2)">${N(h.g)}</b><button class="s o" onclick="op('${h.d}')">Open</button>${h.live?'':`<span onclick="dl('${h.d}')" style="cursor:pointer">🗑</span>`}</div>`).join('')||'<p class="mu pad">No records match.</p>';const A=R.find(h=>h.d==cmp[0]),B=R.find(h=>h.d==cmp[1]);if(A&&B){const df=B.g-A.g;h=`<div class="card"><b>Comparison</b><div class="sum"><span>${fd(A.d)}</span><b>${N(A.g)}</b></div><div class="sum"><span>${fd(B.d)}</span><b>${N(B.g)}</b></div><div class="sum"><span class="mu">Difference</span><b style="color:${df<0?'var(--rd)':'var(--g2)'}">${df<0?'−':'+'}${N(Math.abs(df))}</b></div></div>`+h}else h=`<p class="mu pad" style="margin:0 0 8px">Tap two days to compare their sales.</p>`+h;$('#hl').innerHTML=h}
+function pk(d){cmp=cmp.includes(d)?cmp.filter(x=>x!=d):[...cmp.slice(-1),d];hl()}
+function op(d){if(ST.days[d]&&d!=date){date=d;ld(d);P()}go('rec')}
+function dl(d){md('Delete this reconciliation? This cannot be undone.',()=>{delete ST.days[d];cmp=cmp.filter(x=>x!=d);P();hl();toast('Deleted')})}
+function hist(){setTimeout(hl,0);return `<h2>History</h2><div class="card"><div class="g2"><label>Search by date<input id="hq" placeholder="e.g. Nov or 14" value="${q}"></label><label>Attendant<select id="hf">${['All',...new Set(Object.values(ST.days).map(x=>x.a).filter(Boolean))].map(a=>`<option ${a==fa?'selected':''}>${a}</option>`).join('')}</select></label></div><small>Saved days are stored on this phone.</small></div><div id="hl"></div>`}
+const f2=n=>(+n).toLocaleString('en-US',{maximumFractionDigits:2}),q2=v=>'"'+String(v).replace(/"/g,'""')+'"';
+async function out(name,mime,txt){const cp=window.Capacitor,PL=cp&&cp.Plugins;if(cp&&cp.isNativePlatform&&cp.isNativePlatform()&&PL&&PL.Filesystem&&PL.Share){try{const r=await PL.Filesystem.writeFile({path:name,data:btoa(unescape(encodeURIComponent(txt))),directory:'CACHE'});await PL.Share.share({title:name,url:r.uri})}catch(e){toast('Could not share: '+(e.message||e))}return}const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:mime}));a.download=name;a.click();toast('File downloaded (if your browser allows it)')}
+function expCsv(){let c=`Date,${date}\nAttendant,${q2(att)}\nSNACKS/FOOD,UNIT PRICE,OPEN COUNT,ADDITIONS,TOTAL,LEFTOVERS,TOTAL SALES\n`;I.forEach(i=>{c+=[q2(i.n),i.p,i.o,i.a,tot(i),i.l,sal(i)].join(',')+'\n'});c+=`GRAND SALES,,,,,,${grand()}\n`;out(`recon-${date}.csv`,'text/csv',c)}
+function pdf(L){const pg=[];for(let i=0;i<L.length;i+=56)pg.push(L.slice(i,i+56));let s='%PDF-1.4\n',off=[];const add=b=>{off.push(s.length);s+=off.length+' 0 obj\n'+b+'\nendobj\n'};const e=t=>t.replace(/[^\x20-\x7e]/g,'?').replace(/[\\()]/g,'\\$&');
+add('<</Type/Catalog/Pages 2 0 R>>');add('<</Type/Pages/Kids['+pg.map((_,i)=>(5+i*2)+' 0 R').join(' ')+']/Count '+pg.length+'>>');add('<</Type/Font/Subtype/Type1/BaseFont/Courier>>');
+pg.forEach((l,i)=>{const c='BT /F1 9 Tf 40 800 Td 13 TL '+l.map(x=>'('+e(x)+') Tj T*').join(' ')+' ET';add('<</Length '+c.length+'>>\nstream\n'+c+'\nendstream');add('<</Type/Page/Parent 2 0 R/MediaBox[0 0 595 842]/Contents '+(4+i*2)+' 0 R/Resources<</Font<</F1 3 0 R>>>>>>')});
+const x=s.length;s+='xref\n0 '+(off.length+1)+'\n0000000000 65535 f \n'+off.map(o=>String(o).padStart(10,'0')+' 00000 n \n').join('')+'trailer\n<</Size '+(off.length+1)+'/Root 1 0 R>>\nstartxref\n'+x+'\n%%EOF';return s}
+function expPdf(){const w=(t,n)=>String(t).slice(0,n).padEnd(n),v=(t,n)=>String(t).slice(0,n).padStart(n);const L=['DAILY ACCOUNT RECONCILIATION RECORD SHEET','','DATE: '+fd(date),'ATTENDANT: '+(att||'-'),'',w('ITEM',16)+v('PRICE',7)+v('TOTAL',9)+v('LEFT',9)+v('SALES (NGN)',14),'-'.repeat(55)];I.forEach(i=>L.push(w(i.n,16)+v(f2(i.p),7)+v(f2(tot(i)),9)+v(i.l===''?'':f2(i.l),9)+v(f2(sal(i)),14)));L.push('-'.repeat(55),w('GRAND SALES',41)+v(f2(grand()),14));out(`recon-${date}.pdf`,'application/pdf',pdf(L))}
+document.addEventListener('input',e=>{const t=e.target;if(t.id=='dt'){if(t.value){date=t.value;ld(date);render();P()}}else if(t.id=='at'){att=t.value;P()}else if(t.id=='hq'){q=t.value;hl()}else if(t.dataset.k){let v=t.value;if(v!==''&&+v<0){v=0;t.value=0}I[+t.dataset.x][t.dataset.k]=v===''?'':+v;upd(+t.dataset.x)}});
+document.addEventListener('change',e=>{if(e.target.id=='hf'){fa=e.target.value;hl()}});
+if(ST.items)ST.items.forEach((c,x)=>{if(I[x])I[x].p=c.p;else{I.push({n:c.n,p:c.p,o:'',a:'',t:'',l:'',k:c.k,d:c.d});C[5][1].push(x)}});
+if(ST.cur){date=ST.cur.date;att=ST.cur.att;ST.cur.e.forEach((e,x)=>{if(I[x]){I[x].o=e[0];I[x].a=e[1];I[x].t=e[2];I[x].l=e[3]}})}
+render();gt();
+</script></body></html>

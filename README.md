@@ -1,15 +1,10 @@
-# Recon Desk (Android APK)
+# Daily Recon (Android)
 
-## Get the APK (no Android Studio needed)
-1. Create a free account at github.com and make a new repository (private is fine).
-2. Upload everything in this folder to it (drag and drop on the "Add file > Upload files" page; keep the .github folder).
-3. Open the repository's **Actions** tab > **Build APK** > wait about 5-8 minutes for the green tick.
-   (If it does not start by itself: Build APK > Run workflow.)
-4. Open the finished run, download **ReconDesk-apk** at the bottom, unzip it to get app-debug.apk.
-5. Send the file to your phone, tap it, and allow "Install unknown apps" when asked.
+1. Create a new GitHub repository and upload everything in this folder (keep the `.github` folder).
+2. Open the **Actions** tab, choose **Build Android APK**, click **Run workflow** (it also runs on every push to `main`).
+3. When it finishes (about 5-10 minutes), open the run and download the **daily-recon-debug-apk** artifact. Unzip it to get `app-debug.apk`.
+4. Copy the APK to your phone and install it (allow "Install unknown apps" when asked).
 
-## First use
-Open the app > "API key" > paste your Anthropic API key (console.anthropic.com). Reading a screenshot needs internet; typing figures and the calculations work offline.
-
-## Edit the app
-All the app code is in www/index.html. After editing, push again and a new APK is built.
+The app lives in `www/index.html`. Edit it, push, and the APK rebuilds.
+Records are saved on the phone. Share as PDF / CSV opens the Android share sheet.
+This is a debug build for your own use; a signed release build is needed for the Play Store.
