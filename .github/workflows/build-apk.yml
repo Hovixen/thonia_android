@@ -33,19 +33,36 @@ jobs:
       # 4. Install project dependencies
       - name: Install npm dependencies
         run: npm install
+      
+      # 5. Retrieves encrypted-at-rest GitHub secrets, decodes it and creates the actual .jks into a temporary folder
+      - name: Decode Android signing keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          mkdir -p "$RUNNER_TEMP"
+          echo "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/recon-release.jks"
+          test -s "$RUNNER_TEMP/recon-release.jks"
 
-      # 5. Synchronize Capacitor with Android
+
+      # 6. Synchronize Capacitor with Android
       - name: Sync Android project
         run: npx cap sync android
 
-      # 6. Build Android APK
+      # 7. Build Android APK   
       - name: Build Debug APK
+        env:
+          KEYSTORE_FILE: ${{ runner.temp }}/recon-release.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          VERSION_CODE: ${{ github.run_number }}
         run: |
           chmod +x android/gradlew
           cd android
           ./gradlew assembleDebug
 
-      # 7. Upload APK
+
+      # 8. Upload APK
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
